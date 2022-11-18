@@ -11,6 +11,7 @@ builder.Services.AddDbContext<AppIdentityDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
 });
 
+
 builder.Services.AddIdentity<AppUser, IdentityRole>(opts =>
 {
     opts.User.RequireUniqueEmail = true;
@@ -21,14 +22,26 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(opts =>
     opts.Password.RequireUppercase = false;
     opts.Password.RequireDigit = false;
     
-
 }).AddPasswordValidator<CustomPasswordValidator>()
     .AddUserValidator<CustomUserValidator>()
     .AddErrorDescriber<CustomIdentityErrorDescriber>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();
+CookieBuilder cookieBuilder = new CookieBuilder();
+
+cookieBuilder.Name = "MyBlog";
+cookieBuilder.HttpOnly = false;
+cookieBuilder.SameSite = SameSiteMode.Lax;
+cookieBuilder.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+
+builder.Services.ConfigureApplicationCookie(opts =>
+{
+    opts.LoginPath = new PathString("/Home/Login");
+    opts.Cookie = cookieBuilder;
+    opts.SlidingExpiration = true;
+    opts.ExpireTimeSpan = TimeSpan.FromDays(60);
+});
 
 builder.Services.AddMvc();
-
 
 
 var app = builder.Build();
@@ -36,8 +49,11 @@ var app = builder.Build();
 app.UseDeveloperExceptionPage();
 app.UseStatusCodePages();
 app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.UseAuthentication();
+
 app.Run();
