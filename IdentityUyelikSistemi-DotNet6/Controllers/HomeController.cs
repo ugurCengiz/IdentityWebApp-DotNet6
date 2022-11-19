@@ -39,9 +39,9 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                 user = await _userManager.FindByEmailAsync(userLogin.Email);
                 if (user != null)
                 {
-                    if (await  _userManager.IsLockedOutAsync(user))
+                    if (await _userManager.IsLockedOutAsync(user))
                     {
-                        ModelState.AddModelError("","Hesabınız Bir Süreliğine Kitlenmiştir. Lütfen daha sonra tekrar deneyiniz.");
+                        ModelState.AddModelError("", "Hesabınız Bir Süreliğine Kitlenmiştir. Lütfen daha sonra tekrar deneyiniz.");
                         return View(userLogin);
                     }
 
@@ -53,26 +53,26 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                     {
                         await _userManager.ResetAccessFailedCountAsync(user);
 
-                        if (TempData["ReturnUrl"]!=null)
+                        if (TempData["ReturnUrl"] != null)
                         {
                             return Redirect(TempData["ReturnUrl"].ToString());
                         }
                         return RedirectToAction("Index", "Member");
-                        
+
                     }
                     else
                     {
                         await _userManager.AccessFailedAsync(user);
-                        
+
 
                         int fail = await _userManager.GetAccessFailedCountAsync(user);
-                        ModelState.AddModelError("",$"{fail} kez başarısız giriş.");
+                        ModelState.AddModelError("", $"{fail} kez başarısız giriş.");
 
-                        if (fail==3)
+                        if (fail == 3)
                         {
-                            await _userManager.SetLockoutEndDateAsync(user,new DateTimeOffset(DateTime.Now.AddMinutes(20)));
+                            await _userManager.SetLockoutEndDateAsync(user, new DateTimeOffset(DateTime.Now.AddMinutes(20)));
 
-                            ModelState.AddModelError("","Hesabınız 3 başarısız girişten dolayı 20 dakika süreyle kitlenmiştir. Lütfen daha sonra tekrar deneyiniz.");
+                            ModelState.AddModelError("", "Hesabınız 3 başarısız girişten dolayı 20 dakika süreyle kitlenmiştir. Lütfen daha sonra tekrar deneyiniz.");
                         }
                         else
                         {
@@ -126,7 +126,89 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
             return View(userViewModel);
         }
 
+        public IActionResult ResetPassword()
+        {
+            return View();
+        }
 
+        [HttpPost]
+        public IActionResult ResetPassword(PasswordResetViewModel passwordResetViewModel)
+        {
+            user = _userManager.FindByEmailAsync(passwordResetViewModel.Email).Result;
+            if (user != null)
+            {
+                string passwordResetToken = _userManager.GeneratePasswordResetTokenAsync(user).Result;
+
+                string passwordResetLink = Url.Action("ResetPasswordConfirm", "Home", new
+                {
+                    userId = user.Id,
+                    token = passwordResetToken,
+
+                }, HttpContext.Request.Scheme);
+
+                Helper.PasswordReset.PasswordResetSendEmail(passwordResetLink);
+
+                ViewBag.StatusCode = "successfull";
+
+            }
+            else
+            {
+                ModelState.AddModelError("", "Sistemde kayıtlı email adresi bulunamadı.");
+
+            }
+
+            return View(passwordResetViewModel);
+        }
+
+        public IActionResult ResetPasswordConfirm(string userId, string token)
+        {
+            TempData["userId"] = userId;
+            TempData["token"] = token;
+
+            return View();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPasswordConfirm([Bind("PasswordNew")] PasswordResetViewModel passwordResetViewModel)
+        {
+            string userId = TempData["userId"].ToString();
+            string token = TempData["token"].ToString();
+
+            user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                IdentityResult result =
+                    await _userManager.ResetPasswordAsync(user, token, passwordResetViewModel.PasswordNew);
+
+                if (result.Succeeded)
+                {
+                    await _userManager.UpdateSecurityStampAsync(user);
+
+                    TempData["passwordResetInfo"] =
+                        "şifreniz başarıyla yenilenmiştir. Yeni şifreniz ile giriş yapabilirsiniz.";
+                    ViewBag.status = "success";
+
+                }
+                else
+                {
+                    foreach (var item in result.Errors)
+                    {
+                        ModelState.AddModelError("",item.Description);
+
+                    }
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("","Bir hata meydana geldi lütfen daha sonra tekrar deneyiniz.");
+            }
+
+
+            return View(passwordResetViewModel);
+
+
+        }
 
     }
 }
