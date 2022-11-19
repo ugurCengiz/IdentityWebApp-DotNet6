@@ -148,7 +148,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
 
                 Helper.PasswordReset.PasswordResetSendEmail(passwordResetLink);
 
-                ViewBag.StatusCode = "successfull";
+                ViewBag.status = "success";
 
             }
             else
@@ -184,9 +184,6 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                 if (result.Succeeded)
                 {
                     await _userManager.UpdateSecurityStampAsync(user);
-
-                    TempData["passwordResetInfo"] =
-                        "şifreniz başarıyla yenilenmiştir. Yeni şifreniz ile giriş yapabilirsiniz.";
                     ViewBag.status = "success";
 
                 }
