@@ -12,7 +12,7 @@ builder.Services.AddDbContext<AppIdentityDbContext>(options =>
 });
 
 
-builder.Services.AddIdentity<AppUser, IdentityRole>(opts =>
+builder.Services.AddIdentity<AppUser, AppRole>(opts =>
 {
     opts.User.RequireUniqueEmail = true;
     opts.User.AllowedUserNameCharacters = "abcçdefgğðhýıijklmnoöpqrsşþtuüvwxyzABCÇDEFGÐHIÝJKLMNOÖPQRSÞTUÜVWXYZ0123456789-._";
@@ -37,6 +37,7 @@ cookieBuilder.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 builder.Services.ConfigureApplicationCookie(opts =>
 {
     opts.LoginPath = new PathString("/Home/Login");
+    opts.LogoutPath = new PathString("/Member/LogOut");
     opts.Cookie = cookieBuilder;
     opts.SlidingExpiration = true;
     opts.ExpireTimeSpan = TimeSpan.FromDays(60);

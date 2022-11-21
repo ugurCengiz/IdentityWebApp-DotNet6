@@ -1,7 +1,47 @@
-﻿
+﻿@model UserViewModel
+
 @{
     ViewData["Title"] = "Index";
+    Layout = "_MemberLayout";
 }
 
-<h1>Member Index</h1>
+<h3 class="text-center">Kullanıcı Bilgileri</h3>
+<div class="row">
+    <div class="col-sm-3">
+        
+        <img src="@Model.Picture" style="width: 100%; height: 90%"/>
+
+    </div>
+    <div class="col-sm-9">
+        
+        <table class="table table-bordered table-striped">
+            
+            <tr>
+                <td>Kullanıcı ismi</td>
+                <td>@Model.UserName</td>
+            </tr>
+            <tr>
+                <td>E-posta</td>
+                <td>@Model.Email</td>
+            </tr>
+            <tr>
+                <td>Telefon Numarası</td>
+                <td>@Model.PhoneNumber</td>
+            </tr>
+            <tr>
+                <td>Şehir</td>
+                <td>@Model.City</td>
+            </tr>
+            <tr>
+                <td>Doğum Tarihi</td>
+                <td>@Model.BirthDay.Value.ToShortDateString()</td>
+            </tr>
+            <tr>
+                <td>Cinsiyet</td>
+                <td>@Model.Gender</td>
+            </tr>
+
+        </table>
+    </div>
+</div>
 

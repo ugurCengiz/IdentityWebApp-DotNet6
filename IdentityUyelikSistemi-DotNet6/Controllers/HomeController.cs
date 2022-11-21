@@ -6,21 +6,23 @@ using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace IdentityUyelikSistemi_DotNet6.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
-        public UserManager<AppUser> _userManager;
-        public SignInManager<AppUser> _signInManager;
+        
 
         AppUser user = new AppUser();
 
-        public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
+        public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager):base(userManager, signInManager)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            
         }
 
         public IActionResult Index()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Member");
+            }
             return View();
         }
 
@@ -116,10 +118,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                 }
                 else
                 {
-                    foreach (IdentityError item in result.Errors)
-                    {
-                        ModelState.AddModelError("", item.Description);
-                    }
+                   AddModelError(result);
                 }
             }
 
@@ -189,11 +188,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                 }
                 else
                 {
-                    foreach (var item in result.Errors)
-                    {
-                        ModelState.AddModelError("",item.Description);
-
-                    }
+                    AddModelError(result);
                 }
             }
             else
