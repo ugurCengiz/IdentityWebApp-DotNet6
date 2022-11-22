@@ -140,5 +140,10 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
 
             return View(passwordChangeViewModel);
         }
+
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
     }
 }

@@ -20,7 +20,7 @@
 
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Navbar</a>
             <div class="container">
@@ -31,10 +31,7 @@
 
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Member" asp-action="Index">Üye Ana Sayfa</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin Ana Sayfa</a>
+                            <a class="nav-link text-bg-dark" asp-area="" asp-controller="Admin" asp-action="Index">Member Ana Sayfa</a>
                         </li>
 
 
@@ -51,24 +48,27 @@
         </div>
     </nav>
 
-<div class="table container " >
+<div class="table container ">
+    <hr/>
     <div class="row">
-           
+
         <div class=" col-md-4">
             <h3>Menü</h3>
 
-            <div > <a class="btn btn-info " asp-action="PasswordChange" asp-controller="Member">Şifre değiştirme</a></div>
-               
-            <div> <a class="btn btn-info " asp-action="UserEdit" asp-controller="Member">Bilgi güncelleme</a></div>
-                
-            <div><a class="btn btn-info " asp-action="LogOut" asp-controller="Member" asp-route-returnUrl="/Home/Index">Çıkış yap</a></div>
+            <div > <a class="btn btn-danger " asp-action="Users" asp-controller="Admin">Üyeler</a></div>
+            
+            <div> <a class="btn btn-danger " asp-action="Roles" asp-controller="Admin">Roller</a></div>
+                <div> <a class="btn btn-danger " asp-action="Roles" asp-controller="Admin">RolAtama</a></div>
 
+            <div><a class="btn btn-danger " asp-action="LogOut" asp-controller="Member" asp-route-returnUrl="/Home/Index">Çıkış yap</a></div>
+            
         </div>
         <div class="col-md-8">
+
             @RenderBody()
         </div>
     </div>
-        
+
 </div>
 
 </body>
