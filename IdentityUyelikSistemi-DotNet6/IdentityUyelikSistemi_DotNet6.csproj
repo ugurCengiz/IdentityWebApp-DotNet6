@@ -21,5 +21,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.10" />
   </ItemGroup>
+	<PropertyGroup>
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
 
 </Project>

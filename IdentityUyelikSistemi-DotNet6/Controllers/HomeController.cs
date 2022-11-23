@@ -10,7 +10,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
     {
         
 
-        AppUser user = new AppUser();
+        
 
         public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager):base(userManager, signInManager)
         {
@@ -38,7 +38,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         {
             if (ModelState.IsValid)
             {
-                user = await _userManager.FindByEmailAsync(userLogin.Email);
+              AppUser  user = await _userManager.FindByEmailAsync(userLogin.Email);
                 if (user != null)
                 {
                     if (await _userManager.IsLockedOutAsync(user))
@@ -103,8 +103,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         [HttpPost]
         public async Task<IActionResult> SignUp(UserViewModel userViewModel)
         {
-            if (ModelState.IsValid)
-            {
+            AppUser user = new AppUser();
 
                 user.UserName = userViewModel.UserName;
                 user.Email = userViewModel.Email;
@@ -120,7 +119,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                 {
                    AddModelError(result);
                 }
-            }
+            
 
             return View(userViewModel);
         }
@@ -133,7 +132,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         [HttpPost]
         public IActionResult ResetPassword(PasswordResetViewModel passwordResetViewModel)
         {
-            user = _userManager.FindByEmailAsync(passwordResetViewModel.Email).Result;
+           AppUser user = _userManager.FindByEmailAsync(passwordResetViewModel.Email).Result;
             if (user != null)
             {
                 string passwordResetToken = _userManager.GeneratePasswordResetTokenAsync(user).Result;
@@ -174,7 +173,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
             string userId = TempData["userId"].ToString();
             string token = TempData["token"].ToString();
 
-            user = await _userManager.FindByIdAsync(userId);
+          AppUser  user = await _userManager.FindByIdAsync(userId);
             if (user != null)
             {
                 IdentityResult result =

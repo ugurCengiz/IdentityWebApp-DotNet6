@@ -12,6 +12,7 @@
         <td>User Id</td>
         <td>User Name</td>
         <td>Email</td>
+        <td>Roller</td>
        <td>Rol Atama</td>
         
     </tr>
@@ -31,6 +32,7 @@
                 <th>@item.Id</th>
                 <th>@item.UserName</th>
                 <th>@item.Email</th>
+                <td user-roles="@item.Id"></td>
                 <td><a class="btn btn-success" asp-action="RoleAssign" asp-route-id="@item.Id">Rol Ata</a></td>
             </tr>
         }

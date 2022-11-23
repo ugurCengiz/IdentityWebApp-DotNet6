@@ -1,11 +1,13 @@
 ﻿using IdentityUyelikSistemi_DotNet6.Models;
 using IdentityUyelikSistemi_DotNet6.ViewModels;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityUyelikSistemi_DotNet6.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminController : BaseController
     {
         AppRole role = new AppRole();
