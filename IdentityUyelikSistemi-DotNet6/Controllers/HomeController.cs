@@ -8,13 +8,13 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
 {
     public class HomeController : BaseController
     {
-        
 
-        
 
-        public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager):base(userManager, signInManager)
+
+
+        public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager) : base(userManager, signInManager)
         {
-            
+
         }
 
         public IActionResult Index()
@@ -38,7 +38,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         {
             if (ModelState.IsValid)
             {
-              AppUser  user = await _userManager.FindByEmailAsync(userLogin.Email);
+                AppUser user = await _userManager.FindByEmailAsync(userLogin.Email);
                 if (user != null)
                 {
                     if (await _userManager.IsLockedOutAsync(user))
@@ -46,6 +46,13 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                         ModelState.AddModelError("", "Hesabınız Bir Süreliğine Kitlenmiştir. Lütfen daha sonra tekrar deneyiniz.");
                         return View(userLogin);
                     }
+
+                    if (await _userManager.IsEmailConfirmedAsync(user) == false)
+                    {
+                        ModelState.AddModelError("","Email adresiniz onaylanmamıştır. Lütfen e postanızı kontrol ediniz.");
+                        return View(userLogin);
+                    }
+
 
                     await _signInManager.SignOutAsync();
 
@@ -105,21 +112,32 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         {
             AppUser user = new AppUser();
 
-                user.UserName = userViewModel.UserName;
-                user.Email = userViewModel.Email;
-                user.PhoneNumber = userViewModel.PhoneNumber;
+            user.UserName = userViewModel.UserName;
+            user.Email = userViewModel.Email;
+            user.PhoneNumber = userViewModel.PhoneNumber;
 
-                IdentityResult result = await _userManager.CreateAsync(user, userViewModel.Password);
+            IdentityResult result = await _userManager.CreateAsync(user, userViewModel.Password);
 
-                if (result.Succeeded)
+            if (result.Succeeded)
+            {
+                string confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                string link = Url.Action("ConfirmEmail", "Home", new
                 {
-                    return RedirectToAction("Login");
-                }
-                else
-                {
-                   AddModelError(result);
-                }
-            
+                    userId = user.Id,
+                    token = confirmationToken,
+
+                }, protocol: HttpContext.Request.Scheme);
+
+                Helper.EmailConfirmation.SendEmail(link,user.Email);
+
+                return RedirectToAction("Login");
+            }
+
+            else
+            {
+                AddModelError(result);
+            }
+
 
             return View(userViewModel);
         }
@@ -132,7 +150,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         [HttpPost]
         public IActionResult ResetPassword(PasswordResetViewModel passwordResetViewModel)
         {
-           AppUser user = _userManager.FindByEmailAsync(passwordResetViewModel.Email).Result;
+            AppUser user = _userManager.FindByEmailAsync(passwordResetViewModel.Email).Result;
             if (user != null)
             {
                 string passwordResetToken = _userManager.GeneratePasswordResetTokenAsync(user).Result;
@@ -144,7 +162,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
 
                 }, HttpContext.Request.Scheme);
 
-                Helper.PasswordReset.PasswordResetSendEmail(passwordResetLink);
+                Helper.PasswordReset.PasswordResetSendEmail(passwordResetLink, user.Email);
 
                 ViewBag.status = "success";
 
@@ -173,7 +191,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
             string userId = TempData["userId"].ToString();
             string token = TempData["token"].ToString();
 
-          AppUser  user = await _userManager.FindByIdAsync(userId);
+            AppUser user = await _userManager.FindByIdAsync(userId);
             if (user != null)
             {
                 IdentityResult result =
@@ -192,13 +210,32 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
             }
             else
             {
-                ModelState.AddModelError("","Bir hata meydana geldi lütfen daha sonra tekrar deneyiniz.");
+                ModelState.AddModelError("", "Bir hata meydana geldi lütfen daha sonra tekrar deneyiniz.");
             }
 
 
             return View(passwordResetViewModel);
 
 
+        }
+
+
+        public async Task<IActionResult> ConfirmEmail(string userId,string token)
+        {
+            var usera = await _userManager.FindByIdAsync(userId);
+
+            IdentityResult result = await _userManager.ConfirmEmailAsync(usera, token);
+
+            if (result.Succeeded)
+            {
+                ViewBag.status = "Email Adresiniz onaylanmıştır.";
+            }
+            else
+            {
+                ViewBag.status = "Email Adresiniz onaylanamadı. Lütfen tekrar deneyiniz.";
+            }
+
+            return View();
         }
 
     }

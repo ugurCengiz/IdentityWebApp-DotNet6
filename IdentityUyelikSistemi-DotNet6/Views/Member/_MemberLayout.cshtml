@@ -42,10 +42,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Member" asp-action="Manager">Manager Ana Sayfa</a>
                         </li>
+                       
 
 
                     </ul>
-                    <div class="nav-item">
+                    <div class="nav-item" style="color: red">
                         @if (@User.Identity.IsAuthenticated)
                         {
                             @User.Identity.Name
@@ -63,6 +64,9 @@
         <div class=" col-md-4">
             <h3>Menü</h3>
 
+            <div > <a class="btn btn-success  " asp-action="AnkaraPage" asp-controller="Member">Ankara Ana Sayfası</a></div>
+            <div > <a class="btn btn-success " asp-action="ViolancePage" asp-controller="Member">Şiddet içeren sayfa</a></div>
+            <div > <a class="btn btn-success " asp-action="ExchangeReidrect" asp-controller="Member">borsa sayfa</a></div>
             <div > <a class="btn btn-info " asp-action="PasswordChange" asp-controller="Member">Şifre değiştirme</a></div>
                
             <div> <a class="btn btn-info " asp-action="UserEdit" asp-controller="Member">Bilgi güncelleme</a></div>

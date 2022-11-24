@@ -1,14 +1,41 @@
-﻿using IdentityUyelikSistemi_DotNet6.CustomValidation;
+﻿using System.Security.Claims;
+using IdentityUyelikSistemi_DotNet6;
+using IdentityUyelikSistemi_DotNet6.ClaimProvider;
+using IdentityUyelikSistemi_DotNet6.CustomValidation;
 using IdentityUyelikSistemi_DotNet6.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 //Servicesleri buraya yazıyoruz
 
+builder.Services.AddTransient<IAuthorizationHandler, ExpireDateExchangeHandler>();
+
 builder.Services.AddDbContext<AppIdentityDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
+});
+
+builder.Services.AddAuthorization(opts =>
+{
+    opts.AddPolicy("AnkaraPolicy", policy =>
+    {
+        policy.RequireClaim("city", "ankara");
+    });
+
+    opts.AddPolicy("ViolancePolicy", policy =>
+    {
+        policy.RequireClaim("violance");
+    });
+
+
+    opts.AddPolicy("ExchangePolicy", policy =>
+    {
+        policy.AddRequirements(new ExpireDateExchangeRequirement());
+    });
+
 });
 
 
@@ -21,7 +48,7 @@ builder.Services.AddIdentity<AppUser, AppRole>(opts =>
     opts.Password.RequireLowercase = false;
     opts.Password.RequireUppercase = false;
     opts.Password.RequireDigit = false;
-    
+
 }).AddPasswordValidator<CustomPasswordValidator>()
     .AddUserValidator<CustomUserValidator>()
     .AddErrorDescriber<CustomIdentityErrorDescriber>()
@@ -41,9 +68,9 @@ builder.Services.ConfigureApplicationCookie(opts =>
     opts.Cookie = cookieBuilder;
     opts.SlidingExpiration = true;
     opts.ExpireTimeSpan = TimeSpan.FromDays(60);
-
     opts.AccessDeniedPath = new PathString("/Member/AccessDenied");
 });
+builder.Services.AddScoped<IClaimsTransformation, ClaimProvider>();
 
 builder.Services.AddMvc();
 

@@ -48,28 +48,29 @@
         </div>
     </nav>
 
-<div class="table container ">
-    <hr/>
-    <div class="row">
+    <div class="table container ">
+        <hr />
+        <div class="row">
 
-        <div class=" col-md-4">
-            <h3>Menü</h3>
+            <div class=" col-md-4">
+                <h3>Menü</h3>
 
-            <div > <a class="btn btn-danger " asp-action="Users" asp-controller="Admin">Üyeler</a></div>
-            
-            <div> <a class="btn btn-danger " asp-action="Roles" asp-controller="Admin">Roller</a></div>
-                <div> <a class="btn btn-danger " asp-action="Roles" asp-controller="Admin">RolAtama</a></div>
+                <div> <a class="btn btn-danger " asp-action="Users" asp-controller="Admin">Üyeler</a></div>
 
-            <div><a class="btn btn-danger " asp-action="LogOut" asp-controller="Member" asp-route-returnUrl="/Home/Index">Çıkış yap</a></div>
-            
+                <div> <a class="btn btn-danger " asp-action="Roles" asp-controller="Admin">Roller</a></div>
+                
+                <div> <a class="btn btn-danger " asp-action="Claims" asp-controller="Admin">Üye Claim</a></div>
+
+                <div><a class="btn btn-danger " asp-action="LogOut" asp-controller="Member" asp-route-returnUrl="/Home/Index">Çıkış yap</a></div>
+
+            </div>
+            <div class="col-md-8">
+
+                @RenderBody()
+            </div>
         </div>
-        <div class="col-md-8">
 
-            @RenderBody()
-        </div>
     </div>
-
-</div>
 
 </body>
 </html>

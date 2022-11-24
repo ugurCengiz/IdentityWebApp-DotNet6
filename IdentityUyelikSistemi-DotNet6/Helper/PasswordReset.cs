@@ -5,12 +5,12 @@ namespace IdentityUyelikSistemi_DotNet6.Helper
 {
     public static class PasswordReset
     {
-        public static void PasswordResetSendEmail(string link)
+        public static void PasswordResetSendEmail(string link,string email)
         {
             using (MailMessage mail = new MailMessage())
             {
                 mail.From = new MailAddress("domingo29@ethereal.email");
-                mail.To.Add("domingo29@ethereal.email");
+                mail.To.Add(email);//("domingo29@ethereal.email");
                 mail.Subject = $"www.cengiz.com::Şifre yenileme";
                 mail.Body = "<h2>Şifrenizi yenilemek için lütfen aşagıdaki linke tıklayınız.</h2><hr/>";
                 mail.Body += $"<a href='{link}'>Şifre yenileme linki</a>";

@@ -1,4 +1,5 @@
-﻿using IdentityUyelikSistemi_DotNet6.Enums;
+﻿using System.Security.Claims;
+using IdentityUyelikSistemi_DotNet6.Enums;
 using IdentityUyelikSistemi_DotNet6.Models;
 using IdentityUyelikSistemi_DotNet6.ViewModels;
 using Mapster;
@@ -13,10 +14,10 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
     public class MemberController : BaseController
     {
         private AppUser user = new AppUser();
-       
-        public MemberController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager):base(userManager, signInManager)
+
+        public MemberController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager) : base(userManager, signInManager)
         {
-           
+
         }
 
         public IActionResult Index()
@@ -41,53 +42,53 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UserEdit(UserViewModel userViewModel,IFormFile userPicture)
+        public async Task<IActionResult> UserEdit(UserViewModel userViewModel, IFormFile userPicture)
         {
             ModelState.Remove("Password");
 
             ViewBag.Gender = new SelectList(Enum.GetNames(typeof(Gender)));
-            
-                user = await _userManager.FindByNameAsync(User.Identity.Name);
 
-                if (userPicture != null && userPicture.Length>0)
+            user = await _userManager.FindByNameAsync(User.Identity.Name);
+
+            if (userPicture != null && userPicture.Length > 0)
+            {
+                var fileName = new Guid().ToString() + Path.GetExtension(userPicture.FileName);
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/UserPicture", fileName);
+
+                using (var stream = new FileStream(path, FileMode.Create))
                 {
-                    var fileName = new Guid().ToString() + Path.GetExtension(userPicture.FileName);
-                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/UserPicture", fileName);
+                    await userPicture.CopyToAsync(stream);
 
-                    using (var stream = new FileStream(path,FileMode.Create))
-                    {
-                        await userPicture.CopyToAsync(stream);
-
-                        user.Picture = "/UserPicture/" + fileName;
-                    }
-
+                    user.Picture = "/UserPicture/" + fileName;
                 }
-                
-                user.UserName = userViewModel.UserName;
-                user.Email = userViewModel.Email;
-                user.PhoneNumber = userViewModel.PhoneNumber;
-                user.City = userViewModel.City;
-                user.BirthDay = userViewModel.BirthDay;
-                user.Gender = (int)userViewModel.Gender;
 
-                
+            }
 
-                IdentityResult result = await _userManager.UpdateAsync(user);
+            user.UserName = userViewModel.UserName;
+            user.Email = userViewModel.Email;
+            user.PhoneNumber = userViewModel.PhoneNumber;
+            user.City = userViewModel.City;
+            user.BirthDay = userViewModel.BirthDay;
+            user.Gender = (int)userViewModel.Gender;
 
-                if (result.Succeeded)
-                {
-                    await _userManager.UpdateSecurityStampAsync(user);
-                    await _signInManager.SignOutAsync();
-                    await _signInManager.SignInAsync(user, true);
 
-                    ViewBag.success = "true";
 
-                }
-                else
-                {
-                    AddModelError(result);
-                }
-            
+            IdentityResult result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                await _userManager.UpdateSecurityStampAsync(user);
+                await _signInManager.SignOutAsync();
+                await _signInManager.SignInAsync(user, true);
+
+                ViewBag.success = "true";
+
+            }
+            else
+            {
+                AddModelError(result);
+            }
+
 
             return View(userViewModel);
         }
@@ -95,7 +96,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         public void LogOut()
         {
             _signInManager.SignOutAsync();
-           
+
         }
 
         public IActionResult PasswordChange()
@@ -157,5 +158,42 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         {
             return View();
         }
+
+
+        [Authorize(Policy = "AnkaraPolicy")]
+        public IActionResult AnkaraPage()
+        {
+            return View();
+        }
+
+
+        [Authorize(Policy = "ViolancePolicy")]
+        public IActionResult ViolancePage()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> ExchangeReidrect()
+        {
+            bool result = User.HasClaim(x => x.Type == "ExpireDateExchange");
+            if (!result)
+            {
+                Claim ExpireDateExchange = new Claim("ExpireDateExchange", DateTime.Now.AddDays(30).Date.ToShortDateString(),
+                    ClaimValueTypes.String, "Internal");
+
+                await _userManager.AddClaimAsync(CurrentUser, ExpireDateExchange);
+                await _signInManager.SignOutAsync();
+                await _signInManager.SignInAsync(CurrentUser, true);
+            }
+            return RedirectToAction("Exchange");
+        }
+
+
+        [Authorize(Policy = "ExchangePolicy")]
+        public IActionResult Exchange()
+        {
+            return View();
+        }
+
     }
 }
