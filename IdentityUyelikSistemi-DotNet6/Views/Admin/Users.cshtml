@@ -13,7 +13,8 @@
         <td>User Name</td>
         <td>Email</td>
         <td>Roller</td>
-       <td>Rol Atama</td>
+        <td>Rol Atama</td>
+        <td>Şifre değiştirme</td>
         
     </tr>
 
@@ -34,6 +35,8 @@
                 <th>@item.Email</th>
                 <td user-roles="@item.Id"></td>
                 <td><a class="btn btn-success" asp-action="RoleAssign" asp-route-id="@item.Id">Rol Ata</a></td>
+                
+                <td><a class="btn btn-success" asp-action="ResetUserPassword" asp-controller="Admin" asp-route-id="@item.Id">Şifre Yenileme</a></td>
             </tr>
         }
     }

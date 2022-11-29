@@ -1,4 +1,5 @@
-﻿using IdentityUyelikSistemi_DotNet6.Models;
+﻿using System.Security.Claims;
+using IdentityUyelikSistemi_DotNet6.Models;
 using IdentityUyelikSistemi_DotNet6.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,9 +9,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
 {
     public class HomeController : BaseController
     {
-
-
-
+        
 
         public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager) : base(userManager, signInManager)
         {
@@ -49,7 +48,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
 
                     if (await _userManager.IsEmailConfirmedAsync(user) == false)
                     {
-                        ModelState.AddModelError("","Email adresiniz onaylanmamıştır. Lütfen e postanızı kontrol ediniz.");
+                        ModelState.AddModelError("", "Email adresiniz onaylanmamıştır. Lütfen e postanızı kontrol ediniz.");
                         return View(userLogin);
                     }
 
@@ -110,8 +109,13 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         [HttpPost]
         public async Task<IActionResult> SignUp(UserViewModel userViewModel)
         {
-            AppUser user = new AppUser();
+            if (_userManager.Users.Any(x=>x.PhoneNumber==userViewModel.PhoneNumber))
+            {
+                ModelState.AddModelError("","Bu telefon numarası kayıtlıdır.");
+                return View(userViewModel);
+            }
 
+            AppUser user = new AppUser();
             user.UserName = userViewModel.UserName;
             user.Email = userViewModel.Email;
             user.PhoneNumber = userViewModel.PhoneNumber;
@@ -128,7 +132,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
 
                 }, protocol: HttpContext.Request.Scheme);
 
-                Helper.EmailConfirmation.SendEmail(link,user.Email);
+                Helper.EmailConfirmation.SendEmail(link, user.Email);
 
                 return RedirectToAction("Login");
             }
@@ -220,7 +224,7 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         }
 
 
-        public async Task<IActionResult> ConfirmEmail(string userId,string token)
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
             var usera = await _userManager.FindByIdAsync(userId);
 
@@ -238,5 +242,84 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
             return View();
         }
 
+        public IActionResult FacebookLogin(string ReturnUrl)
+        {
+            string redirectUrl = Url.Action("ExternalResponse", "Home", new { ReturnUrl = ReturnUrl });
+
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties("Facebook", redirectUrl);
+
+            return new ChallengeResult("Facebook", properties);
+        }
+
+
+        public async Task<IActionResult> ExternalResponse(string ReturnUrl = "/")
+        {
+            ExternalLoginInfo info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return RedirectToAction("Login");
+            }
+            else
+            {
+                SignInResult result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, true);
+
+                if (result.Succeeded)
+                {
+                    return Redirect(ReturnUrl);
+                }
+                else
+                {
+                    AppUser user = new AppUser();
+
+                    user.Email = info.Principal.FindFirst(ClaimTypes.Email).Value;
+                    string ExternalUserId = info.Principal.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                    if (info.Principal.HasClaim(x => x.Type == ClaimTypes.Name))
+                    {
+                        string userName = info.Principal.FindFirst(ClaimTypes.Name).Value;
+
+                        userName = userName.Replace(" ", "-").ToLower() + ExternalUserId.Substring(0, 5).ToString();
+
+                        user.UserName = userName;
+                    }
+                    else
+                    {
+                        user.UserName = info.Principal.FindFirst(ClaimTypes.Email).Value;
+                    }
+
+                    IdentityResult createResult = await _userManager.CreateAsync(user);
+
+                    if (createResult.Succeeded)
+                    {
+                        IdentityResult loginResult = await _userManager.AddLoginAsync(user, info);
+
+                        if (loginResult.Succeeded)
+                        {
+                           // await _signInManager.SignInAsync(user, true);
+
+                           await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, true);
+                            return Redirect(ReturnUrl);
+                        }
+                        else
+                        {
+                            AddModelError(loginResult);
+                        }
+                    }
+                    else
+                    {
+                        AddModelError(createResult);
+                    }
+                }
+            }
+
+            List<string> errors = ModelState.Values.SelectMany(x => x.Errors).Select(y => y.ErrorMessage).ToList();
+
+            return View("Error", errors);
+        }
+
+        public IActionResult Error()
+        {
+            return View();
+        }
     }
 }

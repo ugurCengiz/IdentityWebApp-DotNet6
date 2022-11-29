@@ -23,6 +23,7 @@
   </ItemGroup>
 	<PropertyGroup>
 		<Nullable>disable</Nullable>
+		<UserSecretsId>8e500bd2-604a-46c2-8a08-a0f3fa56b149</UserSecretsId>
 	</PropertyGroup>
 
 </Project>

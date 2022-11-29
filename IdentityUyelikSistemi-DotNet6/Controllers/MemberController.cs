@@ -47,9 +47,17 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
             ModelState.Remove("Password");
 
             ViewBag.Gender = new SelectList(Enum.GetNames(typeof(Gender)));
-
+            
             user = await _userManager.FindByNameAsync(User.Identity.Name);
-
+            string phone = _userManager.GetPhoneNumberAsync(user).Result;
+            if (phone!=userViewModel.PhoneNumber)   
+            {
+                if (_userManager.Users.Any(x=>x.PhoneNumber==userViewModel.PhoneNumber))
+                {
+                    ModelState.AddModelError("", "Bu telefon numarası kayıtlıdır.");
+                    return View(userViewModel);
+                }
+            }
             if (userPicture != null && userPicture.Length > 0)
             {
                 var fileName = new Guid().ToString() + Path.GetExtension(userPicture.FileName);

@@ -131,13 +131,13 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                 roleAssign.RoleName = role.Name;
                 if (userRoles.Contains(role.Name))
                 {
-                    
+
                     roleAssign.Exist = true;
 
                 }
-                else 
+                else
                 {
-                    
+
                     roleAssign.Exist = false;
                 }
 
@@ -157,11 +157,11 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
             {
                 if (item.Exist)
                 {
-                  await  _userManager.AddToRoleAsync(user, item.RoleName);
+                    await _userManager.AddToRoleAsync(user, item.RoleName);
                 }
                 else
                 {
-                   await _userManager.RemoveFromRoleAsync(user, item.RoleName);
+                    await _userManager.RemoveFromRoleAsync(user, item.RoleName);
                 }
             }
 
@@ -172,6 +172,32 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
         public IActionResult Claims()
         {
             return View(User.Claims.ToList());
+        }
+
+        public async Task<IActionResult> ResetUserPassword(string id)
+        {
+            AppUser user = await _userManager.FindByIdAsync(id);
+            PasswordResetByAdminViewModel passwordResetByAdminViewModel = new PasswordResetByAdminViewModel();
+
+            passwordResetByAdminViewModel.UserId = user.Id;
+            return View(passwordResetByAdminViewModel);
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetUserPassword(PasswordResetByAdminViewModel passwordResetByAdminViewModel)
+        {
+            AppUser user = await _userManager.FindByIdAsync(passwordResetByAdminViewModel.UserId);
+
+            string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            await _userManager.ResetPasswordAsync(user, token, passwordResetByAdminViewModel.NewPassword);
+
+            await _userManager.UpdateSecurityStampAsync(user);
+            
+
+            return RedirectToAction("Users");
+
         }
     }
 }

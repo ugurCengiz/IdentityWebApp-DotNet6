@@ -38,6 +38,12 @@ builder.Services.AddAuthorization(opts =>
 
 });
 
+builder.Services.AddAuthentication().AddFacebook(opts =>
+{
+    opts.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+    opts.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+
+});
 
 builder.Services.AddIdentity<AppUser, AppRole>(opts =>
 {
