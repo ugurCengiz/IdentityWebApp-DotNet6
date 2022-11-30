@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 //Servicesleri buraya yazıyoruz
@@ -78,8 +79,21 @@ builder.Services.ConfigureApplicationCookie(opts =>
 });
 builder.Services.AddScoped<IClaimsTransformation, ClaimProvider>();
 
-builder.Services.AddMvc();
 
+
+builder.Services.AddMvc();
+var logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.Debug(outputTemplate: DateTime.Now.ToString())
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.Seq("http://localhost:5341/")
+    .MinimumLevel.Information()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog(logger);
 
 var app = builder.Build();
 

@@ -9,11 +9,11 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
 {
     public class HomeController : BaseController
     {
-        
+        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager) : base(userManager, signInManager)
+        public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ILogger<HomeController> logger) : base(userManager, signInManager)
         {
-
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -133,12 +133,15 @@ namespace IdentityUyelikSistemi_DotNet6.Controllers
                 }, protocol: HttpContext.Request.Scheme);
 
                 Helper.EmailConfirmation.SendEmail(link, user.Email);
-
+                _logger.LogInformation($"{user.Id} - {user.UserName} eklendi.");
                 return RedirectToAction("Login");
+
             }
 
             else
             {
+                _logger.LogError($"Hata {result.ToString()}");
+
                 AddModelError(result);
             }
 
